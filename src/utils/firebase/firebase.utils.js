@@ -1,6 +1,6 @@
 // Creates an instance of the app based on some type of config
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithRedirect, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 
 // Our web app's firebase configuration
@@ -15,22 +15,25 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const firebaseApp = initializeApp(firebaseConfig);
+initializeApp(firebaseConfig);
 
 // The providers are instructions for these instances of providers.
-const provider = new GoogleAuthProvider();
+// We can use other providers too, eg for facebook.
+const googleProvider = new GoogleAuthProvider();
 // When someone interacts with the provider we want them to select an account.
-provider.setCustomParameters({
+googleProvider.setCustomParameters({
 	prompt: 'select_account',
 });
 
 export const auth = getAuth();
-export const signInWithGooglePopup = () => signInWithPopup(auth, provider);
+export const signInWithGooglePopup = () => signInWithPopup(auth, googleProvider);
 
-// Now we can firestore what data we want to get or set.
+// Now we can store in the firestore db what data we want to get or set.
 export const db = getFirestore();
 
-export const createUserDocumentFromAuth = async userAuth => {
+export const createUserDocumentFromAuth = async (userAuth, additionalInformation = {}) => {
+	if (!userAuth) return;
+
 	const userDocRef = doc(db, 'users', userAuth.uid);
 
 	// We can see if the instance exists and we can access the data.
@@ -45,6 +48,7 @@ export const createUserDocumentFromAuth = async userAuth => {
 				displayName,
 				email,
 				createdAt,
+				...additionalInformation,
 			});
 		} catch (error) {
 			console.error('Error creating the user', error.message);
@@ -52,4 +56,10 @@ export const createUserDocumentFromAuth = async userAuth => {
 	}
 
 	return userDocRef;
+};
+
+export const createAuthUserWithEmailAndPassword = async (email, password) => {
+	if (!email || !password) return;
+
+	return await createUserWithEmailAndPassword(auth, email, password);
 };
