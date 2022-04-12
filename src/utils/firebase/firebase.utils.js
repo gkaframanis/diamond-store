@@ -6,6 +6,8 @@ import {
 	GoogleAuthProvider,
 	createUserWithEmailAndPassword,
 	signInWithEmailAndPassword,
+	signOut,
+	onAuthStateChanged,
 } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 
@@ -75,3 +77,9 @@ export const signInAuthUserWithEmailAndPassword = async (email, password) => {
 
 	return await signInWithEmailAndPassword(auth, email, password);
 };
+
+export const signOutUser = async () => await signOut(auth);
+
+// onAuthStateChanged: observer listener ==> allows us to hook in a stream of events
+// takes two parameters: callback we want to call every time the auth singleton changes
+export const onAuthStateChangedListener = callback => onAuthStateChanged(auth, callback);
